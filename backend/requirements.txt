@@ -1,0 +1,8 @@
+flask==3.0.2
+flask-cors==4.0.0
+web3==6.15.1
+python-dotenv==1.0.1
+pymongo==4.6.1
+jsonschema==4.23.0
+pytest==8.0.0
+requests==2.31.0 
