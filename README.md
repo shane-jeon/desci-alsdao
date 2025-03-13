@@ -173,12 +173,71 @@ CONTRACT_ADDRESS=your_contract_address
 ### 3. Clerk Authentication Setup
 
 1. Create a Clerk account at https://clerk.dev
-2. Create a new application
+2. Create a new application:
+
+   - Click "Add Application"
+   - Name it "ALS DAO"
+   - Select "Next.js" as the framework
+   - Choose "Development" environment
+
 3. Configure your application:
-   - Set allowed origins (e.g., http://localhost:3000)
-   - Configure sign-in and sign-up pages
-   - Set up OAuth providers if needed
-4. Get your API keys and update the frontend `.env.local` file
+
+   - Go to "JWT Templates" and enable JWT support
+   - Navigate to "Web3" settings:
+     - Enable Web3 authentication
+     - Add MetaMask as an allowed provider
+     - Configure the following settings:
+       - Enable "Sign in with Ethereum"
+       - Set "Chain ID" to 1 (Ethereum mainnet)
+       - Add testnet chain IDs (11155111 for Sepolia, 80001 for Mumbai)
+       - Enable "Require signature for authentication"
+
+4. Set up authentication pages:
+
+   - Go to "Pages" section
+   - Configure sign-in and sign-up pages:
+     - Set sign-in URL: `/sign-in`
+     - Set sign-up URL: `/sign-up`
+     - Set after sign-in URL: `/`
+     - Set after sign-up URL: `/`
+
+5. Configure allowed origins:
+
+   - Go to "CORS" settings
+   - Add the following origins:
+     ```
+     http://localhost:3000
+     http://localhost:3001
+     http://localhost:5000
+     ```
+
+6. Get your API keys:
+
+   - Navigate to "API Keys" section
+   - Copy the following keys:
+     - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+     - `CLERK_SECRET_KEY` (keep this secure, only needed in backend)
+   - Update your frontend `.env.local` file with these keys
+
+7. Update frontend environment variables:
+
+   ```env
+   # Clerk Authentication
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_publishable_key
+   NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+   NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+   NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
+   NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
+   NEXT_PUBLIC_CLERK_DOMAIN=your-app.clerk.accounts.dev
+   ```
+
+8. Test the authentication:
+   - Start your frontend application
+   - Visit http://localhost:3000
+   - Try signing in with MetaMask
+   - Verify that Web3 authentication works correctly
+
+Note: Make sure to keep your Clerk secret key secure and never commit it to version control. The publishable key is safe to use in the frontend, but the secret key should only be used in the backend.
 
 ### 4. Installation
 
