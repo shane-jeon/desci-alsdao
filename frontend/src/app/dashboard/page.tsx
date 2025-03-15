@@ -7,6 +7,12 @@ import NeurofilamentCard from "@/components/NeurofilamentCard";
 import Sidebar from "@/components/Sidebar";
 import { useEffect } from "react";
 
+// Utility function to capitalize first letter
+const capitalizeFirstLetter = (text: string | undefined) => {
+  if (!text) return "N/A";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
 export default function DashboardPage() {
   const { patientData } = usePatientData();
 
@@ -61,7 +67,7 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 <p className="text-sm text-gray-700">
                   <span className="text-gray-600">Name:</span>{" "}
-                  {patientData?.personal_info?.name || "N/A"}
+                  {capitalizeFirstLetter(patientData?.personal_info?.name)}
                 </p>
                 <p className="text-sm text-gray-700">
                   <span className="text-gray-600">Age:</span>{" "}
@@ -69,7 +75,9 @@ export default function DashboardPage() {
                 </p>
                 <p className="text-sm text-gray-700">
                   <span className="text-gray-600">Gender:</span>{" "}
-                  {patientData?.personal_info?.patientGender || "N/A"}
+                  {capitalizeFirstLetter(
+                    patientData?.personal_info?.patientGender,
+                  )}
                 </p>
                 <p className="text-sm text-gray-700">
                   <span className="text-gray-600">Date of Birth:</span>{" "}
@@ -88,11 +96,15 @@ export default function DashboardPage() {
                 </p>
                 <p className="text-sm text-gray-700">
                   <span className="text-gray-600">Stage:</span>{" "}
-                  {patientData?.medicalHistory?.diagnosisStage || "N/A"}
+                  {capitalizeFirstLetter(
+                    patientData?.medicalHistory?.diagnosisStage,
+                  )}
                 </p>
                 <p className="text-sm text-gray-700">
                   <span className="text-gray-600">Allergies:</span>{" "}
-                  {patientData?.medicalHistory?.allergies || "None"}
+                  {capitalizeFirstLetter(
+                    patientData?.medicalHistory?.allergies,
+                  ) || "None"}
                 </p>
               </div>
             </div>
@@ -101,13 +113,21 @@ export default function DashboardPage() {
                 Caregiver Information
               </h4>
               <div className="space-y-2">
-                <p className="text-sm">
-                  <span className="text-gray-500">Primary Caregiver:</span>{" "}
-                  {patientData?.caregiverInfo?.primaryCaregiver || "N/A"}
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium text-gray-600">
+                    Primary Caregiver:
+                  </span>{" "}
+                  {capitalizeFirstLetter(
+                    patientData?.caregiverInfo?.primaryCaregiver,
+                  )}
                 </p>
-                <p className="text-sm">
-                  <span className="text-gray-500">Emergency Contact:</span>{" "}
-                  {patientData?.caregiverInfo?.emergencyContact || "N/A"}
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium text-gray-600">
+                    Emergency Contact:
+                  </span>{" "}
+                  {capitalizeFirstLetter(
+                    patientData?.caregiverInfo?.emergencyContact,
+                  )}
                 </p>
               </div>
             </div>
@@ -131,19 +151,25 @@ export default function DashboardPage() {
             {/* Motor Function Assessment */}
             <div className="grid gap-6 md:grid-cols-2">
               <div className="rounded-xl bg-white p-6 shadow-sm">
-                <h3 className="mb-4 text-lg font-medium">Motor Function</h3>
+                <h3 className="mb-4 text-lg font-medium text-gray-900">
+                  Motor Function
+                </h3>
                 <div className="space-y-4">
                   <div>
                     <h4 className="mb-2 font-medium text-gray-700">
                       Gait Metrics
                     </h4>
                     <p className="text-sm text-gray-700">
-                      <span className="text-gray-600">Stride Length:</span>{" "}
+                      <span className="font-medium text-gray-600">
+                        Stride Length:
+                      </span>{" "}
                       {patientData?.assessments?.motorFunction?.gaitMetrics
                         ?.strideLength || "N/A"}
                     </p>
                     <p className="text-sm text-gray-700">
-                      <span className="text-gray-600">Step Count:</span>{" "}
+                      <span className="font-medium text-gray-600">
+                        Step Count:
+                      </span>{" "}
                       {patientData?.assessments?.motorFunction?.gaitMetrics
                         ?.stepCount || "N/A"}
                     </p>
@@ -153,14 +179,20 @@ export default function DashboardPage() {
                       Muscle Weakness
                     </h4>
                     <p className="text-sm text-gray-700">
-                      <span className="text-gray-600">Grip Strength:</span>{" "}
+                      <span className="font-medium text-gray-600">
+                        Grip Strength:
+                      </span>{" "}
                       {patientData?.assessments?.motorFunction?.muscleWeakness
                         ?.gripStrength || "N/A"}
                     </p>
                     <p className="text-sm text-gray-700">
-                      <span className="text-gray-600">Mobility Test:</span>{" "}
-                      {patientData?.assessments?.motorFunction?.muscleWeakness
-                        ?.mobilityTest || "N/A"}
+                      <span className="font-medium text-gray-600">
+                        Mobility Test:
+                      </span>{" "}
+                      {capitalizeFirstLetter(
+                        patientData?.assessments?.motorFunction?.muscleWeakness
+                          ?.mobilityTest,
+                      )}
                     </p>
                   </div>
                 </div>
@@ -172,13 +204,15 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   <p className="text-sm text-gray-700">
                     <span className="text-gray-600">Memory Decline:</span>{" "}
-                    {patientData?.assessments?.cognitiveHealth?.memoryDecline ||
-                      "N/A"}
+                    {capitalizeFirstLetter(
+                      patientData?.assessments?.cognitiveHealth?.memoryDecline,
+                    )}
                   </p>
                   <p className="text-sm text-gray-700">
                     <span className="text-gray-600">Hallucinations:</span>{" "}
-                    {patientData?.assessments?.cognitiveHealth
-                      ?.hallucinations || "N/A"}
+                    {capitalizeFirstLetter(
+                      patientData?.assessments?.cognitiveHealth?.hallucinations,
+                    )}
                   </p>
                   <p className="text-sm text-gray-700">
                     <span className="text-gray-600">Last Assessment:</span>{" "}
@@ -255,7 +289,9 @@ export default function DashboardPage() {
                   (device: string, index: number) => (
                     <div key={index} className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-blue-400"></div>
-                      <span className="text-sm text-gray-700">{device}</span>
+                      <span className="text-sm text-gray-700">
+                        {capitalizeFirstLetter(device)}
+                      </span>
                     </div>
                   ),
                 ) || (

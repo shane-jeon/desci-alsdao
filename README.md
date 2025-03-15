@@ -4,7 +4,7 @@ A decentralized application for ALS AND PARKINSON'S patients to track their symp
 
 ## About the Application
 
-Desci CAREGIVING ASSISTANT is a comprehensive patient monitoring and caregiver support platform designed specifically for ALS (Amyotrophic Lateral Sclerosis) patients, PARKINSON'S PATIENTS and their caregivers. The application combines blockchain technology with traditional healthcare monitoring to provide a secure, transparent, and efficient way to track patient progress and manage care.
+CAREGIVING ASSISTANT is a comprehensive patient monitoring and caregiver support platform designed specifically for ALS (Amyotrophic Lateral Sclerosis) patients, PARKINSON'S PATIENTS and their caregivers. The application combines blockchain technology with traditional healthcare monitoring to provide a secure, transparent, and efficient way to track patient progress and manage care.
 
 ### Key Features
 
@@ -418,6 +418,24 @@ REPORT_GAS=true npx hardhat test
 2. Use different wallets for development and production
 3. Keep your private keys secure and never share them
 4. Consider using a hardware wallet for production deployments
+
+## Current Implementation and Future Plans
+
+### Data Storage Implementation
+
+The current iteration of the application implements a local storage solution for rapid development and testing. Patient assessment data is temporarily stored in the browser's local storage, allowing for immediate population of the dashboard with form data. This approach enables quick testing and validation of the user interface and data flow.
+
+### Future Enhancements
+
+In upcoming releases, we plan to integrate MongoDB as our primary database solution. This enhancement will include:
+
+- Persistent data storage using MongoDB Atlas
+- Real-time data synchronization
+- Secure data encryption at rest
+- Automated backup and recovery
+- Scalable data architecture for growing user base
+
+The MongoDB integration is currently in development, with the backend infrastructure already set up and ready for seamless transition from local storage to database persistence.
 
 ## Current Issues and Blockers
 
