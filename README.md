@@ -1,4 +1,4 @@
-# Desci ALS DAO
+# Caregiving Assistant
 
 A decentralized application for ALS patients to track their symptoms and receive personalized caregiver advice.
 
@@ -132,10 +132,48 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
 # MongoDB
 MONGODB_URI=your_mongodb_connection_string
 
-# Blockchain
+# Blockchain Configuration
 NEXT_PUBLIC_RPC_URL=your_ethereum_rpc_url
-NEXT_PUBLIC_CONTRACT_ADDRESS=your_contract_address
+NEXT_PUBLIC_TOKEN_ADDRESS=your_token_contract_address
+NEXT_PUBLIC_DAO_ADDRESS=your_dao_contract_address
 ```
+
+#### Web3 Setup
+
+1. Install required dependencies:
+
+   ```bash
+   cd frontend
+   npm install web3 @web3-react/core @web3-react/injected-connector
+   ```
+
+2. Create the Web3 configuration:
+
+   - Create `src/lib/web3.ts` file
+   - Add your contract ABIs
+   - Configure Web3 provider and contract instances
+
+3. Update contract addresses:
+
+   - After deploying your contracts, update the addresses in `.env.local`
+   - Make sure to use the correct network (testnet/mainnet) addresses
+
+4. Test Web3 connection:
+
+   ```typescript
+   // Example test in any component
+   import { neuroToken, neuroGrantDAO } from "../lib/web3";
+
+   // Test token contract
+   const totalSupply = await neuroToken.methods.totalSupply().call();
+   console.log("Total supply:", totalSupply);
+
+   // Test DAO contract
+   const proposals = await neuroGrantDAO.methods.getProposals().call();
+   console.log("Proposals:", proposals);
+   ```
+
+Note: Make sure your MetaMask is connected to the correct network (Sepolia/Mumbai for testing) and has the necessary permissions enabled.
 
 #### Backend Environment Variables
 

@@ -4,11 +4,36 @@ from datetime import datetime
 from models.patient import Patient
 import json
 import traceback
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
 patient_model = Patient()
+
+def log_request_info(route, request_obj):
+    """Log detailed request information"""
+    logger.debug(f"\n{'='*50}")
+    logger.debug(f"[{route}] Request received at {datetime.now().isoformat()}")
+    logger.debug(f"Method: {request_obj.method}")
+    logger.debug(f"URL: {request_obj.url}")
+    logger.debug(f"Headers: {dict(request_obj.headers)}")
+    logger.debug(f"Query Params: {dict(request_obj.args)}")
+    if request_obj.get_json(silent=True):
+        logger.debug(f"Request Body: {json.dumps(request_obj.get_json(), indent=2)}")
+    logger.debug('='*50)
+
+def log_response_info(route, response_data, status_code=200):
+    """Log detailed response information"""
+    logger.debug(f"\n{'='*50}")
+    logger.debug(f"[{route}] Sending response at {datetime.now().isoformat()}")
+    logger.debug(f"Status Code: {status_code}")
+    logger.debug(f"Response Data: {json.dumps(response_data, indent=2)}")
+    logger.debug('='*50)
 
 def create_patient_profile(omi_data, reclaim_data):
     """Create a unified patient profile"""
@@ -343,6 +368,144 @@ def submit_assessment():
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy'})
+
+@app.route('/api/visualization', methods=['GET'])
+def get_visualization_data():
+    """
+    Endpoint to get visualization data for the patient's metrics
+    """
+    try:
+        log_request_info('Visualization API', request)
+        
+        # Get user_id from query parameters
+        user_id = request.args.get('userId')
+        if not user_id:
+            logger.error("[Visualization API] No user_id provided")
+            return jsonify({'error': 'user_id is required', 'success': False}), 400
+
+        logger.debug(f"[Visualization API] Fetching data for user: {user_id}")
+        
+        # Get patient data
+        patient_data = patient_model.get_patient_by_user_id(user_id)
+        if not patient_data:
+            logger.error(f"[Visualization API] No data found for user: {user_id}")
+            return jsonify({'error': 'No data found', 'success': False}), 404
+
+        logger.debug("[Visualization API] Processing patient data for visualization")
+        
+        # Extract relevant metrics for visualization
+        try:
+            visualization_data = {
+                'metrics': {
+                    'motor_function': {
+                        'gait': patient_data.get('assessments', {}).get('motorFunction', {}).get('gaitMetrics', {}),
+                        'muscle_weakness': patient_data.get('assessments', {}).get('motorFunction', {}).get('muscleWeakness', {})
+                    },
+                    'speech': patient_data.get('speech_swallowing', {}),
+                    'cognitive': patient_data.get('assessments', {}).get('cognitiveHealth', {}),
+                    'medication': patient_data.get('medication_adherence', {})
+                },
+                'timestamps': {
+                    'last_updated': datetime.now().isoformat(),
+                    'data_collected': patient_data.get('created_at', datetime.now()).isoformat()
+                }
+            }
+            
+            logger.debug("[Visualization API] Successfully processed visualization data")
+            logger.debug(f"Visualization Data: {json.dumps(visualization_data, indent=2)}")
+            
+            response_data = {'data': visualization_data, 'success': True}
+            log_response_info('Visualization API', response_data)
+            return jsonify(response_data)
+            
+        except Exception as e:
+            logger.error(f"[Visualization API] Error processing data: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return jsonify({
+                'error': 'Failed to convert data to frontend format',
+                'details': str(e),
+                'success': False
+            }), 500
+
+    except Exception as e:
+        logger.error(f"[Visualization API] Unexpected error: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'error': 'Internal server error',
+            'details': str(e),
+            'success': False
+        }), 500
+
+@app.route('/api/frequency-analysis', methods=['GET'])
+def get_frequency_analysis():
+    """
+    Endpoint to get frequency analysis of patient's data points
+    """
+    try:
+        log_request_info('Frequency Analysis API', request)
+        
+        # Get user_id from query parameters
+        user_id = request.args.get('userId')
+        if not user_id:
+            logger.error("[Frequency Analysis API] No user_id provided")
+            return jsonify({'error': 'user_id is required', 'success': False}), 400
+
+        logger.debug(f"[Frequency Analysis API] Fetching data for user: {user_id}")
+        
+        # Get patient data
+        patient_data = patient_model.get_patient_by_user_id(user_id)
+        if not patient_data:
+            logger.error(f"[Frequency Analysis API] No data found for user: {user_id}")
+            return jsonify({'error': 'No data found', 'success': False}), 404
+
+        logger.debug("[Frequency Analysis API] Processing patient data for frequency analysis")
+        
+        try:
+            # Extract and analyze frequency data
+            frequency_data = {
+                'symptom_frequency': {
+                    'falls': patient_data.get('assessments', {}).get('motorFunction', {}).get('gaitMetrics', {}).get('fallFrequency', 0),
+                    'medication_missed': patient_data.get('medication_adherence', {}).get('missed_doses', 0),
+                    'side_effects': len(patient_data.get('medication_adherence', {}).get('side_effects', [])),
+                    'emergency_triggers': len(patient_data.get('emergencyAlertTriggers', []))
+                },
+                'temporal_analysis': {
+                    'assessment_dates': {
+                        'last_motor_assessment': patient_data.get('assessments', {}).get('motorFunction', {}).get('last_assessment'),
+                        'last_speech_assessment': patient_data.get('speech_swallowing', {}).get('last_assessment'),
+                        'last_cognitive_assessment': patient_data.get('assessments', {}).get('cognitiveHealth', {}).get('last_assessment')
+                    }
+                },
+                'metadata': {
+                    'analysis_timestamp': datetime.now().isoformat(),
+                    'data_period': 'last 30 days'  # This could be made dynamic
+                }
+            }
+            
+            logger.debug("[Frequency Analysis API] Successfully processed frequency data")
+            logger.debug(f"Frequency Data: {json.dumps(frequency_data, indent=2)}")
+            
+            response_data = {'data': frequency_data, 'success': True}
+            log_response_info('Frequency Analysis API', response_data)
+            return jsonify(response_data)
+            
+        except Exception as e:
+            logger.error(f"[Frequency Analysis API] Error processing data: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return jsonify({
+                'error': 'Failed to convert data to frontend format',
+                'details': str(e),
+                'success': False
+            }), 500
+
+    except Exception as e:
+        logger.error(f"[Frequency Analysis API] Unexpected error: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'error': 'Internal server error',
+            'details': str(e),
+            'success': False
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000) 
