@@ -5,6 +5,9 @@ from models.patient import Patient
 import json
 import traceback
 import logging
+from pymongo import MongoClient
+from bson import json_util
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -12,6 +15,13 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
+
+# MongoDB setup
+MONGODB_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017')
+client = MongoClient(MONGODB_URI)
+db = client['als-dao']
+patients_collection = db['patients']
+assessments_collection = db['assessments']
 
 patient_model = Patient()
 
@@ -193,171 +203,107 @@ def get_caregiver_advice(user_id):
 @app.route('/api/assessment', methods=['POST'])
 def submit_assessment():
     try:
-        print("\n[Python Backend] Assessment Submission Received")
-        print("=" * 50)
-        print(f"Timestamp: {datetime.now().isoformat()}")
-        
-        # Log request details
-        print("\n[Python Backend] Request Details:")
-        print("- Method:", request.method)
-        print("- URL:", request.url)
-        print("- Headers:", dict(request.headers))
-        print("- Content Type:", request.content_type)
-        print("- Content Length:", request.content_length)
-        
-        # Get and validate request data
         data = request.get_json()
-        print("\n[Python Backend] Request Data:")
-        print("- Raw Data:", data)
-        
-        if not data:
-            print("[Python Backend] Error: No data provided")
-            return jsonify({'error': 'No data provided'}), 400
-
         user_id = data.get('userId')
+        
         if not user_id:
-            print("[Python Backend] Error: No user ID provided")
             return jsonify({'error': 'User ID is required'}), 400
 
-        print(f"\n[Python Backend] Processing data for user: {user_id}")
-
-        # Validate required fields
-        required_fields = [
-            'patientName', 'patientAge', 'patientGender', 'diagnosisDate',
-            'diagnosisStage', 'medicalHistory', 'currentMedications',
-            'familyHistory', 'caregiverInfo', 'gaitMetrics', 'tremorMetrics',
-            'muscleWeakness', 'dyskinesia', 'handwriting', 'assistiveDevice',
-            'speechClarity', 'swallowingDifficulty', 'facialControl',
-            'breathingPatterns', 'sleepQuality', 'memoryDecline',
-            'hallucinations', 'medicationAdherence', 'sideEffects',
-            'emergencyAlertTriggers', 'caregiverStress'
-        ]
-
-        missing_fields = [field for field in required_fields if not data.get(field)]
-        if missing_fields:
-            print("\n[Python Backend] Validation Error:")
-            print("- Missing required fields:", missing_fields)
-            return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
-
-        # Transform the assessment data
-        print("\n[Python Backend] Transforming Data")
-        patient_data = {
-            'user_id': user_id,
+        # Restructure the data to match the schema
+        assessment_data = {
+            'userId': user_id,
             'personal_info': {
                 'name': data.get('patientName', ''),
                 'dateOfBirth': data.get('dateOfBirth', ''),
                 'patientAge': data.get('patientAge', ''),
-                'patientGender': data.get('patientGender', '')
-            },
-            'demographics': {
-                'age': int(data.get('patientAge', 0)) if data.get('patientAge', '').isdigit() else 0,
-                'gender': data.get('patientGender', ''),
-                'location': data.get('location', '')
+                'patientGender': data.get('patientGender', ''),
             },
             'medicalHistory': {
                 'diagnosisDate': data.get('diagnosisDate', ''),
                 'diagnosisStage': data.get('diagnosisStage', ''),
-                'familyHistory': data.get('familyHistory', ''),
-                'medications': data.get('currentMedications', []),
                 'comorbidities': data.get('medicalHistory', {}).get('comorbidities', ''),
                 'hospitalizations': data.get('medicalHistory', {}).get('hospitalizations', ''),
-                'allergies': data.get('medicalHistory', {}).get('allergies', '')
+                'allergies': data.get('medicalHistory', {}).get('allergies', ''),
+                'familyHistory': data.get('familyHistory', ''),
+                'medications': data.get('currentMedications', []),
             },
             'assessments': {
-                'speech': {
-                    'score': 0,
-                    'notes': data.get('speechClarity', '')
+                'motor_function': {
+                    'gait_metrics': {
+                        'strideLength': data.get('gaitMetrics', {}).get('strideLength', ''),
+                        'stepCount': data.get('gaitMetrics', {}).get('stepCount', ''),
+                        'fallFrequency': data.get('gaitMetrics', {}).get('fallFrequency', ''),
+                    },
+                    'tremor_metrics': data.get('tremorMetrics', ''),
+                    'muscle_weakness': {
+                        'gripStrength': data.get('muscleWeakness', {}).get('gripStrength', ''),
+                        'mobilityTest': data.get('muscleWeakness', {}).get('mobilityTest', ''),
+                    },
+                    'dyskinesia': data.get('dyskinesia', ''),
+                    'handwriting': data.get('handwriting', ''),
+                    'assistive_device': data.get('assistiveDevice', []),
                 },
-                'mobility': {
-                    'score': 0,
-                    'notes': f"Gait: {data.get('gaitMetrics', {}).get('strideLength', '')}, Steps: {data.get('gaitMetrics', {}).get('stepCount', '')}, Falls: {data.get('gaitMetrics', {}).get('fallFrequency', '')}"
+                'speech_swallowing': {
+                    'speech_clarity': data.get('speechClarity', ''),
+                    'swallowing_difficulty': data.get('swallowingDifficulty', ''),
+                    'facial_control': data.get('facialControl', ''),
                 },
-                'breathing': {
-                    'score': 0,
-                    'notes': data.get('breathingPatterns', '')
-                }
+                'respiratory': {
+                    'breathing_patterns': data.get('breathingPatterns', ''),
+                },
+                'cognitive_behavioral': {
+                    'sleep_quality': data.get('sleepQuality', ''),
+                    'memory_decline': data.get('memoryDecline', ''),
+                    'hallucinations': data.get('hallucinations', ''),
+                },
             },
-            'caregiverInfo': {
+            'medication_adherence': {
+                'adherence_level': data.get('medicationAdherence', ''),
+                'side_effects': data.get('sideEffects', []),
+            },
+            'caregiver_info': {
                 'primaryCaregiver': data.get('caregiverInfo', {}).get('primaryCaregiver', ''),
                 'emergencyContact': data.get('caregiverInfo', {}).get('emergencyContact', ''),
-                'relationship': data.get('caregiverInfo', {}).get('relationship', '')
             },
-            'additionalAssessments': {
-                'tremorMetrics': data.get('tremorMetrics', ''),
-                'muscleWeakness': data.get('muscleWeakness', {}),
-                'dyskinesia': data.get('dyskinesia', ''),
-                'handwriting': data.get('handwriting', ''),
-                'assistiveDevice': data.get('assistiveDevice', []),
-                'swallowingDifficulty': data.get('swallowingDifficulty', ''),
-                'facialControl': data.get('facialControl', ''),
-                'sleepQuality': data.get('sleepQuality', ''),
-                'memoryDecline': data.get('memoryDecline', ''),
-                'hallucinations': data.get('hallucinations', ''),
-                'medicationAdherence': data.get('medicationAdherence', ''),
-                'sideEffects': data.get('sideEffects', []),
-                'emergencyAlertTriggers': data.get('emergencyAlertTriggers', []),
-                'caregiverStress': data.get('caregiverStress', '')
-            }
+            'emergency_info': {
+                'alert_triggers': data.get('emergencyAlertTriggers', []),
+                'caregiver_stress_level': data.get('caregiverStress', ''),
+            },
+            'created_at': datetime.now(),
+            'updated_at': datetime.now(),
         }
 
-        print("\n[Python Backend] Transformed Data:")
-        print("- Patient Data:", json.dumps(patient_data, indent=2))
-
-        # Validate against schema
-        print("\n[Python Backend] Schema Validation")
+        print("\n[Python Backend] Saving to MongoDB")
         try:
-            from models.patient import patient_schema
-            from bson import json_util
-            import jsonschema
+            # Save to MongoDB using a single collection
+            result = assessments_collection.insert_one(assessment_data)
             
-            json_schema = patient_schema['validator']['$jsonSchema']
-            jsonschema.validate(instance=patient_data, schema=json_schema)
-            print("- Schema validation successful")
-        except jsonschema.exceptions.ValidationError as e:
-            print("- Schema validation failed:")
-            print(f"  - Error: {str(e)}")
-            print(f"  - Path: {' -> '.join(str(p) for p in e.path)}")
-            print(f"  - Instance: {e.instance}")
+            print("✅ Data saved successfully")
+            print(f"Assessment ID: {result.inserted_id}")
+            
             return jsonify({
-                'error': 'Data validation failed',
-                'details': str(e),
-                'path': list(e.path),
-                'instance': e.instance
-            }), 400
-
-        # Save to MongoDB
-        print("\n[Python Backend] MongoDB Operation")
-        try:
-            result = patient_model.save_patient_data(user_id, patient_data)
-            print("- Save result:", result)
-            if not result:
-                print("- Error: Failed to save patient data")
-                return jsonify({'error': 'Failed to save patient data'}), 500
-            print("- Data saved successfully")
+                'status': 'success',
+                'message': 'Assessment saved successfully',
+                'assessment_id': str(result.inserted_id),
+                'timestamp': datetime.now().isoformat()
+            })
+            
         except Exception as e:
-            print("- MongoDB error:")
-            print(f"  - Error: {str(e)}")
-            print(f"  - Type: {type(e).__name__}")
-            print(f"  - Stack trace:", traceback.format_exc())
+            print("❌ MongoDB error:")
+            print(f"Error: {str(e)}")
+            print(f"Stack trace: {traceback.format_exc()}")
             return jsonify({
                 'error': 'Database error',
                 'details': str(e),
                 'type': type(e).__name__
             }), 500
 
-        print("\n[Python Backend] Success")
-        print("=" * 50)
-        return jsonify({
-            'status': 'success',
-            'data': patient_data,
-            'timestamp': datetime.now().isoformat()
-        })
     except Exception as e:
         print("\n[Python Backend] Unhandled Error")
         print("=" * 50)
-        print(f"- Error: {str(e)}")
-        print(f"- Type: {type(e).__name__}")
-        print("- Stack trace:", traceback.format_exc())
+        print(f"Error: {str(e)}")
+        print(f"Type: {type(e).__name__}")
+        print("Stack trace:", traceback.format_exc())
         return jsonify({
             'error': 'Internal server error',
             'details': str(e),
@@ -367,7 +313,20 @@ def submit_assessment():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({'status': 'healthy'})
+    try:
+        # Check MongoDB connection
+        client.admin.command('ping')
+        return jsonify({
+            'status': 'healthy',
+            'mongodb': 'connected',
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 @app.route('/api/visualization', methods=['GET'])
 def get_visualization_data():

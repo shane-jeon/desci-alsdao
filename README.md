@@ -1,10 +1,10 @@
 # Caregiving Assistant
 
-A decentralized application for ALS patients to track their symptoms and receive personalized caregiver advice.
+A decentralized application for ALS AND PARKINSON'S patients to track their symptoms and receive personalized caregiver advice.
 
 ## About the Application
 
-Desci ALS DAO is a comprehensive patient monitoring and caregiver support platform designed specifically for ALS (Amyotrophic Lateral Sclerosis) patients and their caregivers. The application combines blockchain technology with traditional healthcare monitoring to provide a secure, transparent, and efficient way to track patient progress and manage care.
+Desci CAREGIVING ASSISTANT is a comprehensive patient monitoring and caregiver support platform designed specifically for ALS (Amyotrophic Lateral Sclerosis) patients, PARKINSON'S PATIENTS and their caregivers. The application combines blockchain technology with traditional healthcare monitoring to provide a secure, transparent, and efficient way to track patient progress and manage care.
 
 ### Key Features
 
@@ -95,7 +95,7 @@ Desci ALS DAO is a comprehensive patient monitoring and caregiver support platfo
 ## Project Structure
 
 ```
-desci-ALSDAO/
+caregiving-assistant/
 ├── frontend/          # Next.js frontend application
 ├── backend/          # Express.js backend server
 └── contracts/        # Smart contracts for blockchain integration
@@ -135,7 +135,6 @@ MONGODB_URI=your_mongodb_connection_string
 # Blockchain Configuration
 NEXT_PUBLIC_RPC_URL=your_ethereum_rpc_url
 NEXT_PUBLIC_TOKEN_ADDRESS=your_token_contract_address
-NEXT_PUBLIC_DAO_ADDRESS=your_dao_contract_address
 ```
 
 #### Web3 Setup
